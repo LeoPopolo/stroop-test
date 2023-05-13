@@ -1,0 +1,13 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+:root {
+  --custom-red: #ff2d2d;
+  --custom-blue: #488ae0;
+  --custom-green: #76da3c;
+  --custom-yellow: #f7f338;
+}

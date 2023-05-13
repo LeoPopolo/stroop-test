@@ -1,0 +1,140 @@
+.color-container {
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70%;
+    height: 80vh;
+    margin: 1em auto;
+}
+
+.color-container p {
+    font-size: 4.5rem;
+}
+
+.color-container .btn-start {
+    padding: 1em;
+    font-size: 2em;
+    background-color: var(--custom-red);
+    color: yellow;
+    border: none;
+    outline: none;
+}
+
+.instructions {
+    flex-direction: column;
+    padding-inline: 2em;
+}
+
+.instructions p {
+    color: #aaa;
+    font-size: 2.5rem;
+    text-align: center;
+}
+
+.instructions h1 {
+    font-size: 3rem;
+    margin-bottom: 1em;
+    color: #aaa;
+    text-align: left;
+    width: 100%;
+    border-bottom: 2px solid yellow;
+    padding-bottom: 10px;
+}
+
+.instructions h1 span:first-child {
+    color: var(--custom-green);
+}
+
+.instructions h1 span:nth-child(2){
+    color: var(--custom-red);
+}
+
+.instructions h1 span:nth-child(3){
+    color: var(--custom-blue);
+}
+
+.instructions h1 span:nth-child(4){
+    color: var(--custom-yellow);
+}
+
+.instructions h1 span:nth-child(5){
+    color: var(--custom-green);
+}
+
+.instructions h1 span:nth-child(6){
+    color: var(--custom-red);
+}
+
+.colors-guide {
+    margin-top: 1em;
+    display: flex;
+    gap: 1em;
+    flex-direction: column;
+}
+
+.color-container .game-message {
+    font-weight: bold;
+    background-color: #707070;
+    color: #000;
+    border-radius: 40px;
+    padding: .5em;
+}
+
+.color-container .plus {
+    font-size: 150px;
+    color: #fff;
+    background-color: transparent;
+}
+
+.color-container .continue-message {
+    margin-top: 1em;
+    font-size: 2.5rem;
+    color: rgb(224, 178, 178);
+}
+
+.game-over {
+    flex-direction: column;
+}
+
+.game-over p {
+    font-size: 3rem;
+    color: #aaa;
+}
+
+.player-name-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.input-player-name {
+    padding: 1em;
+    outline: none;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #707070;
+    font-size: 1.5em;
+}
+
+.restart-container {
+    display: flex;
+    justify-content: center;
+}
+
+.btn-restart {
+    padding: 1em;
+    border: none;
+    outline: none;
+    background-color: var(--custom-red);
+    color: #fff;
+    font-size: 1.5em;
+}
+
+.color-green {
+    color: var(--custom-green);
+}
+
+.color-blue {
+    color: var(--custom-blue);
+}
