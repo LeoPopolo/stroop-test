@@ -3,7 +3,7 @@ import { utils as XLSXUtils, writeFile as writeExcelFile } from 'xlsx';
 import './StroopTest.css';
 
 const StroopTest = () => {
-    const [ timeLeft, setTimeLeft ] = useState(10);
+    const [ timeLeft, setTimeLeft ] = useState(30);
     const [ hits, setHits ] = useState(0);
     const [ misses, setMisses ] = useState(0);
     const [ currentColor, setCurrentColor ] = useState('custom-red');
@@ -45,7 +45,7 @@ const StroopTest = () => {
     const startGame = () => {
         setCurrentColor(getRandomColor());
         setCurrentColorName(getRandomColorName());
-        setTimeLeft(10);
+        setTimeLeft(30);
         setHits(0);
         setMisses(0);
         setGameStatus('game');
