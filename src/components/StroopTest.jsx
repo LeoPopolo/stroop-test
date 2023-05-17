@@ -200,7 +200,7 @@ const StroopTest = () => {
 
         if (!total_quantity) return 0;
 
-        return total / getTestQuantity(is_congruent);
+        return (total / getTestQuantity(is_congruent)).toFixed(2);
     }
 
     const restartGame = () => {
@@ -236,7 +236,7 @@ const StroopTest = () => {
           <>
             {gameIntroStatus === "start" && (
               <>
-                <button onClick={downloadExcel}>generar excel</button>
+                <button onClick={downloadExcel} className='download-excel'>generar excel</button>
                 <div className="color-container">
                     <button className="btn-start" onClick={seeInstructions}>
                     Empezar juego
@@ -308,8 +308,8 @@ const StroopTest = () => {
             gameStatus === 'game-over' && (
                 <>
                     <div className='color-container game-over'>
-                        <p>Tu tiempo promedio congruente: {getAverageTime(true)}</p>
-                        <p>Tu tiempo promedio incongruente: {getAverageTime(false)}</p>
+                        <p>Tu tiempo promedio congruente: {getAverageTime(true)}ms</p>
+                        <p>Tu tiempo promedio incongruente: {getAverageTime(false)}ms</p>
                         <p>Test correctos: {hits}</p>
                         <p>Test incorrectos: {misses}</p>
                     </div>

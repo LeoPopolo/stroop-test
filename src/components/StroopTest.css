@@ -66,6 +66,14 @@
     color: var(--custom-red);
 }
 
+.download-excel {
+    padding: .5em 1em;
+    font-size: 1.1em;
+    background-color: #19632f;
+    color: #fff;
+    cursor: pointer;
+}
+
 .colors-guide {
     margin-top: 1em;
     display: flex;
@@ -137,4 +145,26 @@
 
 .color-blue {
     color: var(--custom-blue);
+}
+
+@media screen and (max-width: 1366px) {
+    .instructions h1 {
+        font-size: 2.2rem;
+    }
+
+    .instructions p {
+        font-size: 1.7rem;
+    }
+
+    .color-container .continue-message {
+        font-size: 1.8rem;
+    }
+
+    .input-player-name {
+        font-size: 1.3em;
+    }
+
+    .game-over p {
+        font-size: 2.5rem;
+    }
 }
