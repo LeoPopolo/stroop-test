@@ -2,22 +2,39 @@ import { useState, useEffect } from 'react';
 import { utils as XLSXUtils, writeFile as writeExcelFile } from 'xlsx';
 import './StroopTest.css';
 
+var int_id = null;
+
 const StroopTest = () => {
-    const [ timeLeft, setTimeLeft ] = useState(30);
+    //teclas presionadas correctamente durante el juego real
     const [ hits, setHits ] = useState(0);
+    //teclas presionadas incorrectamente durante el juego real
     const [ misses, setMisses ] = useState(0);
+    //codigo del color actual que se esta mostrando en la pantalla en el juego
     const [ currentColor, setCurrentColor ] = useState('custom-red');
+    //nombre del color actual que se esta mostrando en la pantalla en el juego
     const [ currentColorName, setCurrentColorName ] = useState('AMARILLO');
+    //Etapa del juego actual. opciones: intro, word-test, word-test-message, color-test, color-test-message, game, game-over
     const [ gameStatus, setGameStatus ] = useState('intro');
+    //mensajes a mostrar en la interfaz del juego
     const [ gameMessage, setGameMessage ] = useState('color');
+    //etapas de la intro del juego. Opciones: start, instructions, controls
     const [ gameIntroStatus, setGameIntroStatus ] = useState('start');
+    //nombre del jugador actual. Campo requerido
     const [ playerName, setPlayerName ] = useState('');
+    //lista de los tests realizados por el jugador actual
     const [ tests, setTests ] = useState([]);
+    //Tiempo que tarda el jugador en presionar la tecla
     const [ currentTime, setCurrentTime ] = useState(new Date().getTime());
+    //Contador de la cantidad de tests
     const [ currentTest, setCurrentTest ] = useState(1);
+    //Contador de la cantidad de test de palabras (primer ensayo)
+    const [ currentWordTest, setCurrentWordTest ] = useState(1);
+    //Contador de la cantidad de test de colores (segundo ensayo)
+    const [ currentColorTest, setCurrentColorTest ] = useState(1);
 
     useEffect(() => {
-        if (timeLeft < 1 && gameStatus === 'game')  {
+        if (gameStatus === 'game' && currentTest >= 73)  {
+            clearInterval(int_id);
             setGameStatus('game-over');
             let storage_tests = JSON.parse(localStorage.getItem('stroop-tests'));
             if (!storage_tests) storage_tests = [];
@@ -25,7 +42,12 @@ const StroopTest = () => {
 
             localStorage.setItem('stroop-tests', JSON.stringify(storage_tests));
             return;
+        } else if (gameStatus === 'word-test' && currentWordTest >= 21) {
+            setGameStatus('word-test-message');
+        } else if (gameStatus === 'color-test' && currentColorTest >= 21) {
+            setGameStatus('color-test-message');
         }
+
         document.addEventListener('keydown', handleKeyPress);
 
         return () => {
@@ -42,20 +64,85 @@ const StroopTest = () => {
         setGameIntroStatus('instructions');
     }
 
+    const startWordTest = () => {
+        const colors = getCongruentTest();
+        setCurrentColor(colors.code);
+        setCurrentColorName(colors.name);
+        setGameStatus('word-test');
+        setCurrentWordTest(1);
+    }
+
+    const startColorTest = () => {
+        const colors = getCongruentTest();
+        setCurrentColor(colors.code);
+        setCurrentColorName(colors.name);
+        setGameStatus('color-test');
+        setCurrentColorTest(1);
+    }
+
     const startGame = () => {
         setCurrentColor(getRandomColor());
         setCurrentColorName(getRandomColorName());
-        setTimeLeft(30);
         setHits(0);
         setMisses(0);
         setGameStatus('game');
         setCurrentTime(new Date().getTime());
         setTests([]);
         setCurrentTest(1);
+        clearInterval(int_id);
+        const id = setInterval(() => {
+            clearInterval(int_id);
+            setTimeOutActions();
+        }, 2000);
+        int_id = id;
     };
 
-    const handleKeyPress = (event) => {
+    const setTimeOutActions = () => {
+        setMisses(misses + 1);
+        setGameMessage('wrong');
 
+        setTests([
+            ...tests,
+            {
+                player: playerName,
+                datetime: new Date().toLocaleString(),
+                is_congruent: currentColorIsCongruent(),
+                time: 'timeout',
+                is_correct: false,
+                test: currentTest,
+            }
+        ]);
+        setCurrentTest(currentTest + 1);
+
+        setCurrentColor(getRandomColor());
+        setCurrentColorName(getRandomColorName());
+        
+        setTimeout(() => {
+            setGameMessage('');
+            
+            setTimeout(() => { 
+                setGameMessage('+');
+    
+                setTimeout(() => {
+                    setGameMessage('');
+
+                    setTimeout(() => { 
+                        setGameMessage('color');
+
+                        clearInterval(int_id);
+                        const id = setInterval(() => {
+                            clearInterval(int_id);
+                            setTimeOutActions();
+                        }, 2000);
+                        int_id = id;
+                    }, 500);
+                }, 200);
+            }, 300);
+        }, 200);
+    }
+
+    const handleKeyPress = (event) => {
+        
         if (gameStatus === 'game-over') return;
 
         if (gameStatus === 'intro' && gameIntroStatus === 'instructions') {
@@ -65,36 +152,47 @@ const StroopTest = () => {
             }
         } else if (gameStatus === 'intro' && gameIntroStatus === 'controls') {
             if (event.code === 'Space') {
+                startWordTest();
+                return;
+            }
+        } else if (gameStatus === 'word-test-message') {
+            if (event.code === 'Space') {
+                startColorTest();
+                return;
+            }
+        } else if (gameStatus === 'color-test-message') {
+            if (event.code === 'Space') {
                 startGame();
                 return;
             }
         }
 
         let is_correct = false;
+        clearInterval(int_id);
 
         switch (event.key) {
-            case 'v':
+            case 'F5':
                 if (currentColor === 'custom-green') {
                     is_correct = true;
                 } else {
                     is_correct = false;
                 }
                 break;
-            case 'b':
+            case 'F6':
                 if (currentColor === 'custom-red') {
                     is_correct = true;
                 } else {
                     is_correct = false;
                 }
                 break;
-            case 'n':
+            case 'F7':
                 if (currentColor === 'custom-yellow') {
                     is_correct = true;
                 } else {
                     is_correct = false;
                 }
                 break;
-            case 'm':
+            case 'F8':
                 if (currentColor === 'custom-blue') {
                     is_correct = true;
                 } else {
@@ -105,33 +203,48 @@ const StroopTest = () => {
                 return;
             }
         }
-
+        event.preventDefault();
+        
         if (is_correct) {
-            setHits(hits + 1);
+            if (gameStatus === 'game') 
+                setHits(hits + 1);
             setGameMessage('correct');
         } else if (!is_correct) {
-            setMisses(misses + 1);
+            if (gameStatus === 'game') 
+                setMisses(misses + 1);
             setGameMessage('wrong');
         }
 
-        const time = new Date().getTime() - currentTime;
-        setCurrentTime(new Date().getTime());
+        if (gameStatus === 'game') {
+            const time = new Date().getTime() - currentTime;
+            setCurrentTime(new Date().getTime());
+    
+            setTests([
+                ...tests,
+                {
+                    player: playerName,
+                    datetime: new Date().toLocaleString(),
+                    is_congruent: currentColorIsCongruent(),
+                    time,
+                    is_correct,
+                    test: currentTest
+                }
+            ]);
 
-        setTests([
-            ...tests,
-            {
-                player: playerName,
-                datetime: new Date().toLocaleString(),
-                is_congruent: currentColorIsCongruent(),
-                time,
-                is_correct,
-                test: currentTest
-            }
-        ]);
+            setCurrentTest(currentTest + 1);
+        } else if (gameStatus === 'word-test')
+            setCurrentWordTest(currentWordTest + 1);
+          else if (gameStatus === 'color-test')
+            setCurrentColorTest(currentColorTest + 1);
 
-        setCurrentTest(currentTest + 1);
-        setCurrentColor(getRandomColor());
-        setCurrentColorName(getRandomColorName());
+        if (gameStatus === 'word-test' || gameStatus === 'color-test') {
+            const colors = getCongruentTest();
+            setCurrentColor(colors.code);
+            setCurrentColorName(colors.name);
+        } else {
+            setCurrentColor(getRandomColor());
+            setCurrentColorName(getRandomColorName());
+        }
 
         setTimeout(() => {
             setGameMessage('');
@@ -142,21 +255,21 @@ const StroopTest = () => {
                 setTimeout(() => {
                     setGameMessage('');
 
-                    setTimeout(() => { setGameMessage('color') }, 500);
+                    setTimeout(() => { 
+                        setGameMessage('color');
+
+                        if (gameStatus !== 'game') return;
+                        clearInterval(int_id);
+                        const id = setInterval(() => {
+                            clearInterval(int_id);
+                            setTimeOutActions();
+                        }, 2000);
+                        int_id = id;
+                    }, 500);
                 }, 200);
             }, 300);
         }, 200);
     }
-
-    useEffect(() => {
-        if (timeLeft > 0) {
-          const timerId = setTimeout(() => {
-            setTimeLeft((prevTime) => prevTime - 1);
-          }, 1000);
-    
-          return () => clearTimeout(timerId);
-        }
-    }, [timeLeft]);
 
     const currentColorIsCongruent = () => {
         return currentColor === 'custom-red' && currentColorName === 'ROJO' ||
@@ -172,6 +285,29 @@ const StroopTest = () => {
     
     const getRandomColorName = () => {
         const colors = ['ROJO', 'VERDE', 'AMARILLO', 'AZUL'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    const getCongruentTest = () => {
+        const colors = [
+            {
+                code: 'custom-red',
+                name: 'ROJO'
+            },
+            {
+                code: 'custom-green',
+                name: 'VERDE'
+            },
+            {
+                code: 'custom-yellow',
+                name: 'AMARILLO'
+            },
+            {
+                code: 'custom-blue',
+                name: 'AZUL'
+            },
+        ];
+        
         return colors[Math.floor(Math.random() * colors.length)];
     }
     
@@ -191,8 +327,12 @@ const StroopTest = () => {
 
     const getAverageTime = (is_congruent) => {
         let total = 0;
-        tests.forEach(item => {
-            if (item.is_congruent === is_congruent)
+        const tests_with_time = tests.map(item => {
+            if (parseInt(item.time)) return item;
+        });
+
+        tests_with_time.forEach(item => {
+            if (item && item.is_congruent === is_congruent)
                 total += item.time;
         });
 
@@ -231,44 +371,72 @@ const StroopTest = () => {
     }
     
     return (
-      <div>
-        {gameStatus === "intro" && (
-          <>
-            {gameIntroStatus === "start" && (
-              <>
-                <button onClick={downloadExcel} className='download-excel'>generar excel</button>
-                <div className="color-container">
-                    <button className="btn-start" onClick={seeInstructions}>
-                    Empezar juego
-                    </button>
-                </div>
-                <div className='player-name-container'>
-                    <input className='input-player-name' type="text" onChange={changePlayerName} placeholder='Nombre...'/>
-                </div>
-              </>
+        <div>
+            {gameStatus === "intro" && (
+                <>
+                    {gameIntroStatus === "start" && (
+                    <>
+                        <button onClick={downloadExcel} className='download-excel'>generar excel</button>
+                        <div className="color-container">
+                            <button className="btn-start" onClick={seeInstructions}>
+                            Empezar juego
+                            </button>
+                        </div>
+                        <div className='player-name-container'>
+                            <input className='input-player-name' type="text" onChange={changePlayerName} placeholder='Nombre...'/>
+                        </div>
+                    </>
+                    )}
+
+                    {gameIntroStatus === "instructions" && (
+                        <div className="color-container instructions">
+                            <h1>Instrucciones del test <span>S</span><span>t</span><span>r</span><span>o</span><span>o</span><span>p</span> </h1>
+                            <p>
+                                En esta prueba, se le presentarán palabras impresas en la
+                                pantalla de la computadora en diferentes colores. Las palabras
+                                que se presentarán son "rojo", "verde", "azul" y "amarillo".
+                                Su tarea es indicar el color de la tinta en que están escritas
+                                las palabras, ignorando el significado de las palabras mismas. <br /> <br />
+                                Por ejemplo, si ve la palabra <span className='color-green'>ROJO</span> escrita en tinta verde,
+                                deberá presionar la tecla correspondiente al color verde, ya
+                                que es el color de la tinta en que está escrita la palabra. Si
+                                ve la palabra <span className='color-blue'>AMARILLO</span> escrita en tinta azul, deberá
+                                presionar la tecla correspondiente al color azul.
+                            </p>
+                            <p className='continue-message'>Presione la barra espaciadora para continuar...</p>
+                        </div>
+                    )}
+
+                    {gameIntroStatus === "controls" && (
+                        <div className="color-container instructions">
+                            <h1> Practiquemos </h1>
+                            <p>
+                                En esta prueba, se le presentarán palabras impresas en la
+                                pantalla de la computadora en diferentes colores. Las palabras
+                                que se presentarán son "rojo", "verde", "azul" y "amarillo".
+                                Su tarea es indicar el color de la tinta en que están escritas
+                                las palabras.
+                            </p>
+                            <p className='continue-message'>Presione la barra espaciadora para continuar...</p>
+                        </div>
+                    )}
+                </>
             )}
 
-            {gameIntroStatus === "instructions" && (
+            {gameStatus === "word-test-message" && (
                 <div className="color-container instructions">
-                    <h1>Instrucciones del test <span>S</span><span>t</span><span>r</span><span>o</span><span>o</span><span>p</span> </h1>
+                    <h1> ¡Bien! Ahora sólo con colores </h1>
                     <p>
-                        En esta prueba, se le presentarán palabras impresas en la
-                        pantalla de la computadora en diferentes colores. Las palabras
-                        que se presentarán son "rojo", "verde", "azul" y "amarillo".
-                        Su tarea es indicar el color de la tinta en que están escritas
-                        las palabras, ignorando el significado de las palabras mismas. <br /> <br />
-                        Por ejemplo, si ve la palabra <span className='color-green'>ROJO</span> escrita en tinta verde,
-                        deberá presionar la tecla correspondiente al color verde, ya
-                        que es el color de la tinta en que está escrita la palabra. Si
-                        ve la palabra <span className='color-blue'>AMARILLO</span> escrita en tinta azul, deberá
-                        presionar la tecla correspondiente al color azul.
+                        En esta prueba, se le presentarán diferentes colores en la
+                        pantalla de la computadora. Su tarea es indicar el color de la tinta de la barra.
                     </p>
                     <p className='continue-message'>Presione la barra espaciadora para continuar...</p>
                 </div>
             )}
-
-            {gameIntroStatus === "controls" && (
+            
+            {gameStatus === "color-test-message" && (
                 <div className="color-container instructions">
+                    <h1> Ahora sí comencemos </h1>
                     <p>
                         Responda lo más rápido y preciso que pueda, evitando errores.
                         En algunos ensayos, la tarea puede ser más difícil debido a la
@@ -282,44 +450,47 @@ const StroopTest = () => {
                     <p className='continue-message'>Presione la barra espaciadora para continuar...</p>
                 </div>
             )}
-          </>
-        )}
 
-        {gameStatus === "game" && (
-          <>
-            <div className="color-container">
-              {gameMessage === "color" && (
-                <p style={{ color: `var(--${currentColor})` }}>
-                  {currentColorName}
-                </p>
-              )}
-              {gameMessage === "+" && <p className="game-message plus">+</p>}
-              {gameMessage === "correct" && (
-                <p className="game-message">Correcto</p>
-              )}
-              {gameMessage === "wrong" && (
-                <p className="game-message">Incorrecto</p>
-              )}
-            </div>
-          </>
-        )}
+            {(gameStatus === "game" || gameStatus === "word-test" || gameStatus === "color-test") && (
+            <>
+                <div className="color-container">
+                {gameMessage === "color" && (
+                    <>
+                        {gameStatus !== 'color-test' && <p style={{ color: `var(--${currentColor})` }}>
+                            {currentColorName}
+                        </p>}
 
-        {
-            gameStatus === 'game-over' && (
-                <>
-                    <div className='color-container game-over'>
-                        <p>Tu tiempo promedio congruente: {getAverageTime(true)}ms</p>
-                        <p>Tu tiempo promedio incongruente: {getAverageTime(false)}ms</p>
-                        <p>Test correctos: {hits}</p>
-                        <p>Test incorrectos: {misses}</p>
-                    </div>
-                    <div className='restart-container'>
-                        <button className='btn-restart' onClick={restartGame}>Volver a jugar</button>
-                    </div>
-                </>
-            )
-        }
-      </div>
+                        {gameStatus === 'color-test' && <p className='no-word-bar' style={{ background: `var(--${currentColor})` }}></p>}
+                    </> 
+                    
+                )}
+                {gameMessage === "+" && <p className="game-message plus">+</p>}
+                {gameMessage === "correct" && (
+                    <p className="game-message">Correcto</p>
+                )}
+                {gameMessage === "wrong" && (
+                    <p className="game-message">Incorrecto</p>
+                )}
+                </div>
+            </>
+            )}
+
+            {
+                gameStatus === 'game-over' && (
+                    <>
+                        <div className='color-container game-over'>
+                            <p>Tu tiempo promedio congruente: {getAverageTime(true)}ms</p>
+                            <p>Tu tiempo promedio incongruente: {getAverageTime(false)}ms</p>
+                            <p>Test correctos: {hits}</p>
+                            <p>Test incorrectos: {misses}</p>
+                        </div>
+                        <div className='restart-container'>
+                            <button className='btn-restart' onClick={restartGame}>Volver a jugar</button>
+                        </div>
+                    </>
+                )
+            }
+        </div>
     );
 }
 
