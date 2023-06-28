@@ -58,9 +58,15 @@ const StroopTest = () => {
     const seeInstructions = () => {
 
         if (!playerName) {
-            alert('primero ingrese el nombre del jugador');
+            alert('Primero ingrese el DNI del jugador');
             return;
         }
+        
+        if (playerName.length !== 4) {
+            alert('Deben ser los últimos 4 digitos del DNI');
+            return;
+        }
+
         setGameIntroStatus('instructions');
     }
 
@@ -354,7 +360,7 @@ const StroopTest = () => {
 
         const json_data = data.map((item) => {
             return {
-                nombre: item.player,
+                dni: item.player,
                 fecha: item.datetime,
                 ensayo: 'test ' + item.test,
                 tipo: item.is_congruent ? 'Congruente' : 'Incongruente',
@@ -383,7 +389,7 @@ const StroopTest = () => {
                             </button>
                         </div>
                         <div className='player-name-container'>
-                            <input className='input-player-name' type="text" onChange={changePlayerName} placeholder='Nombre...'/>
+                            <input className='input-player-name' type="text" onChange={changePlayerName} placeholder='DNI (4 dígitos)'/>
                         </div>
                     </>
                     )}
